@@ -73,7 +73,12 @@ def decode(bytes):
                 return dict_data
             elif dict_item_type == KEY_B:
                 key_length = int.from_bytes(bytes.read(DICT_KEY_LENGTH), byteorder='big', signed=False)
+
+                # Mod by Tim: From here:
+                # https://stackoverflow.com/questions/48503640/not-able-to-input-string-in-python-for-sentiment-analysis
+                # key = bytes.read(key_length).decode('utf8')
                 key = bytes.read(key_length).decode('utf8')
+                
                 dict_data[key] = decode(bytes)
             else:
                 raise ValueError(f'invalid data type: {dict_item_type} when reading dict data')

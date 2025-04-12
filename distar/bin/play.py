@@ -8,7 +8,6 @@ import warnings
 from distar.ctools.utils import read_config
 warnings.filterwarnings("ignore", message="Setting attributes on ParameterList is not supported.")
 
-
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model1', type=str,
@@ -25,6 +24,10 @@ def get_args():
 
 
 if __name__ == '__main__':
+
+    # Mod by Tim:
+    print(f"1) Check if Pytorch Cuda ok: {torch.cuda.is_available()}")
+
     if os.path.exists(r'C:\Program Files (x86)\StarCraft II'):
         sc2path = r'C:\Program Files (x86)\StarCraft II'
     elif os.path.exists('/Applications/StarCraft II'):
@@ -37,6 +40,10 @@ if __name__ == '__main__':
         shutil.rmtree(os.path.join(sc2path, 'Maps/Ladder2019Season2'))
     if not os.path.exists(os.path.join(sc2path, 'Maps/Ladder2019Season2')):
         shutil.copytree(os.path.join(os.path.dirname(__file__), '../envs/maps/Ladder2019Season2'), os.path.join(sc2path, 'Maps/Ladder2019Season2'))
+
+    # Mod by Tim:
+    print(f"2) SC2PATH: {sc2path}")
+
     user_config = read_config(os.path.join(os.path.dirname(__file__), 'user_config.yaml'))
     user_config.actor.job_type = 'eval_test'
     user_config.common.type = 'play'

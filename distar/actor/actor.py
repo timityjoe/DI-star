@@ -11,7 +11,13 @@ import platform
 
 from distar.agent.import_helper import import_module
 from distar.ctools.utils import read_config, deep_merge_dicts
+
+# Mod by Tim: Change to Tensorboard Logger
 from distar.ctools.utils.log_helper import TextLogger, VariableRecord
+# from distar.ctools.utils.log_helper import VariableRecord, build_logger
+# from distar.ctools.torch_utils import build_log_buffer
+# from tensorboardX import SummaryWriter
+
 from distar.ctools.worker.actor.actor_comm import ActorComm
 from distar.ctools.utils.dist_helper import dist_init
 from distar.envs.env import SC2Env
@@ -22,6 +28,9 @@ default_config = read_config(os.path.join(os.path.dirname(__file__), 'actor_defa
 
 class Actor(object):
     def __init__(self, cfg):
+        # Mod by Tim:
+        print("Actor.__init__()")
+
         cfg = deep_merge_dicts(default_config, cfg)
         self._whole_cfg = cfg
         self._cfg = cfg.actor
@@ -29,15 +38,50 @@ class Actor(object):
         self._league_job_type = cfg.actor.get('league_job_type','train')
         self._actor_uid = str(uuid.uuid1())
         self._gpu_batch_inference = self._cfg.get('gpu_batch_inference', False)
+
+        print("Actor TextLogger()")
         self._logger = TextLogger(
             path=os.path.join(os.getcwd(), 'experiments', self._whole_cfg.common.experiment_name, 'actor_log'),
             name=self._actor_uid)
+        
+        #----------------------------------------
+        # Mod by Tim:
+        # print("Actor TensorBoardLogger()")
+        # self._logger, self._tb_logger, self._record = build_logger(self._whole_cfg, rank=self._rank)
+        # self._log_buffer = build_log_buffer()
+        # self.register_stats_actor()
+         #----------------------------------------
+
         if self._job_type == 'train':
+            print("Actor ActorComm()")
             self._comm = ActorComm(self._whole_cfg, self._actor_uid, self._logger)
             self.max_job_duration = self._whole_cfg.communication.actor_ask_for_job_interval * random.uniform(0.7 , 1.3)
         self._setup_agents()
 
+
+    # Mod by Tim:
+    # def register_stats_actor(self) -> None:
+    #     """
+    #     Overview:
+    #         register some basic attributes to record & tb_logger(e.g.: cur_lr, data_time, train_time),
+    #         register the attributes related to computation_graph to record & tb_logger.
+    #     """
+    #     self._tb_logger.register_var('cur_lr')
+    #     self._tb_logger.register_var('data_time')
+    #     self._tb_logger.register_var('train_time')
+    #     self._tb_logger.register_var('forward_time')
+    #     self._tb_logger.register_var('backward_time')
+    #     self._tb_logger.register_var('gradient')
+
+    #     if hasattr(self._loss, 'register_stats'):
+    #         self._loss.register_stats(self._record, self._tb_logger)
+
+
     def _setup_agents(self):
+
+        # Mod by Tim:
+        print("Actor._setup_agents()")
+
         self.agents = []
         if self._job_type == 'train':
             # comm setup agents
@@ -103,6 +147,10 @@ class Actor(object):
                             agent.teacher_model = teacher_models[teacher_player_id]
 
     def _inference_loop(self, env_id=0, job={}, result_queue=None, pipe_c=None):
+
+        # Mod by Tim:
+        print(f"Actor._inference_loop() - self._cfg.episode_num {self._cfg.episode_num}")
+
         torch.set_num_threads(1)
         frac_ids = job.get('frac_ids',[])
         env_info = job.get('env_info', {})
@@ -266,6 +314,10 @@ class Actor(object):
                 return
 
     def _gpu_inference_loop(self):
+
+        # Mod by Tim:
+        print("Actor._gpu_inference_loop()")
+
         _, _ = dist_init(method='single_node')
         torch.set_num_threads(1)
         for agent in self.agents:
@@ -299,6 +351,10 @@ class Actor(object):
                         agent.gpu_batch_inference(teacher=True)
 
     def _start_multi_inference_loop(self):
+
+        # Mod by Tim:
+        print("Actor._start_multi_inference_loop()")
+
         self._close_processes()
         self._processes = []
         if hasattr(self, '_comm'):
@@ -319,10 +375,18 @@ class Actor(object):
         self.processes = processes
 
     def reset_env(self):
+
+        # Mod by Tim:
+        print("Actor.reset_env()")
+
         for p in self.pipes:
             p.send('reset')
 
     def run(self):
+
+        # Mod by Tim:
+        print("Actor.run()")
+
         try:
             if 'test' in self._job_type:
                 self._inference_loop()

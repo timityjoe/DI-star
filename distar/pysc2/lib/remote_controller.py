@@ -378,8 +378,13 @@ class RemoteController(object):
     @decorate_check_error(sc_pb.ResponseReplayInfo.Error)
     @sw.decorate
     def replay_info(self, replay_path):
-        return self._client.send(replay_info=sc_pb.RequestReplayInfo(
-            replay_path=replay_path))
+        # Mod by Tim:
+        # return self._client.send(replay_info=sc_pb.RequestReplayInfo(replay_path=replay_path))
+        replay_info=sc_pb.RequestReplayInfo(replay_path=replay_path)
+        print(f"val:{val}")
+        str_val = replay_info
+        unicode_str = str(str_val, "utf-8")
+        return self._client.send(unicode_str)
 
     @property
     def status(self):

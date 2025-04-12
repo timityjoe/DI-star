@@ -27,7 +27,6 @@ Environment requirement:
 
 - Python: 3.6-3.8
 
-
 #### 1.Install StarCraftII
 
 - Download the retail version of StarCraftII: https://starcraft2.com
@@ -52,17 +51,48 @@ Note: There is no retail version on Linux, please follow the instruction [here](
 
 #### 2.Install distar:
 
+
 ```bash
 git clone https://github.com/opendilab/DI-star.git
 cd DI-star
 pip install -e .
 ```
 
+
+```bash
+sudo apt-get install libcap-dev - For subprocess.Popen [https://github.com/xihuai18/pysc2#]
+sudo apt-get install [the packages in "requirements-dev.txt"]
+
+In "sc2_env.py", L338, remove "extra_ports" to prevent this err message:
+return subprocess.Popen(
+TypeError: __init__() got an unexpected keyword argument 'extra_ports
+
+Within "$PYSC2/pysc2/lib/replay" directory
+Rename "__init__.py.bkup" as the file "replay.py" is being interferred with
+
+conda create -n conda38-distar python=3.8
+conda activate conda38-distar
+
+# conda install pytorch==1.7.1 torchvision==0.8.2 torchaudio==0.7.2 -c pytorch
+# conda install pytorch==1.7.1 torchvision==0.8.2 cudatoolkit=11.1 -c pytorch
+# conda install -y -c conda-forge -c pytorch pytorch cudatoolkit=11.1
+# conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch-nightly -c nvidia
+
+pip install -e .
+pip install torch==1.7.1+cu110 -f https://download.pytorch.org/whl/torch_stable.html
+# pip install numpy==1.23.5
+# pip install s2clientprotocol==4.9.3.75025.0
+pip install numpy==1.20
+pip install tensorflow
+pip install protobuf==3.20.1
+pip install pygame==1.9.6
+
+For pygame 1.9.6, install (sudo apt-get install) libsdl2-dev, libsdl2-mixer, libsdl2-image, etc if "not found"
+```
+
 #### 3.Install pytorch:
 
 Pytorch Version 1.7.1 and CUDA is recommended, Follow instructions from [pytorch official site](https://pytorch.org/get-started/previous-versions/)
-
-
 
 **Note: GPU is neccessary for decent performance in realtime agent test, you can also use pytorch without cuda, but no performance guaranteed due to inference latency on cpu.
 Make sure you set SC2 at lowest picture quality before testing.**
@@ -76,7 +106,14 @@ Note: We trained our models with versions from 4.8.2 to 4.9.3. Patch 5.0.9 has c
 
 #### 2. Download models:
 ```bash
+Downloads to $DI_STAR_DIR/distar/bin/
+
 python -m distar.bin.download_model --name rl_model
+python -m distar.bin.download_model --name sl_model
+python -m distar.bin.download_model --name Abathur
+python -m distar.bin.download_model --name Brakk
+python -m distar.bin.download_model --name Dehaka
+python -m distar.bin.download_model --name Zagara
 ```
 Note: Specify `rl_model` or `sl_model` after `--name` to download reinforcement learning model or supervised model.
 
@@ -92,8 +129,24 @@ Model list:
 With the given model, we provide multiple tests with our agent.
 
 ##### Play against Agent
+
+Test PYSC2
+```bash
+python -m distar.pysc2.bin.agent --map Simple64
+python -m distar.pysc2.bin.agent --map Simple64 --agent2 distar.pysc2.agents.random_agent.RandomAgent
+```
+
+Replay
+```shell
+$ python -m pysc2.bin.play --replay <path-to-replay>
+$ python -m distar.pysc2.bin.play --replay $DI_STAR_DIR/
+```
+
+
 ```bash
 python -m distar.bin.play
+python -m distar.bin.play --model1 Abathur
+python -m distar.bin.play --model1 Zagara
 ```
 It runs 2 StarCraftII instances. First one is controlled by our RL agent. Human player can play on the second one with full screen like normal game.
 
@@ -101,6 +154,18 @@ Note:
 - GPU and CUDA is required on default, add `--cpu` if you don't have these.
 - Download RL model first or specify other models (like supervised model) with argument `--model1 <model_name>`
 - In race cases, 2 StarCraftII instances may lose connection and agent won't issue any action. Please restart when this happens.
+
+##### Watch a replay [https://github.com/google-deepmind/pysc2/blob/master/README.md]
+```bash
+Use stock pysc2 [https://github.com/google-deepmind/pysc2] to play back for now
+
+python -m distar.pysc2.bin.play --replay $DI_STAR_DIR/<replay file name>
+python -m distar.pysc2.bin.play --replay $DI_STAR_DIR/NewRepugnancy_Zagara_vs_human.SC2Replay
+python -m distar.pysc2.bin.play --replay $DI_STAR_DIR/data/replays/replay_4.10.0.SC2Replay 
+python -m distar.pysc2.bin.play --replay $DI_STAR_DIR/data/replays/replay_4.10.2.SC2Replay
+python -m distar.pysc2.bin.play --replay $DI_STAR_DIR/data/replays/replay_5.0.8.SC2Replay
+python -m distar.pysc2.bin.play --replay $DI_STAR_DIR/data/data4100/0a1a1d1cfa8b1d4388d9c026480e5fcf9e80a9ec03aa4ba9e352b03a8b9a2148.SC2Replay
+```
 
 ##### Agent vs Agent
 ```bash
@@ -163,12 +228,12 @@ Reinforcement learning will use supervised model as initial model, please downlo
 
 ##### 1. Training against bots in StarCraftII: 
 ```bash
-python -m disatr.bin.rl_train
+python -m distar.bin.rl_train
 ```
 
 ##### 2. Training with self-play
 ```bash
-python -m disatr.bin.rl_train --task selfplay
+python -m distar.bin.rl_train --task selfplay
 ```
 
 Four components are used for RL training, just like SL training, they can be executed through different process:
@@ -180,6 +245,14 @@ python -m distar.bin.rl_train --type actor
 ```
 
 Distributed training is also supported like SL training.
+
+
+##### 3. Tensorboard
+```bash
+pip install tensorflow
+cd $DI_STAR_DIR/experiments/rl_train/MP0/default_tb_logger
+tensorboard --logdir=./ --port=8080
+```
 
 ### Chat group
 Slack: [link](https://join.slack.com/t/opendilab/shared_invite/zt-v9tmv4fp-nUBAQEH1_Kuyu_q4plBssQ)
