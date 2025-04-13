@@ -10,5 +10,9 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/
 export SC2PATH="/mnt/Data2/workspace/AlphaStar/SC2.4.10/"
 # export SC2PATH="/mnt/Data2/workspace/AlphaStar/SC2.4.6.2.69232/StarCraftII"
 #export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/lib:/usr/lib:/usr/local/lib"
+
+# export PYTHONPATH=$DI_STAR_DIR/distar:$PYTHONPATH
+
 echo "$DI_STAR_DIR"
 echo "$SC2PATH"
+# echo "$PYTHONPATH"

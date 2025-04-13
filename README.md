@@ -55,6 +55,8 @@ Note: There is no retail version on Linux, please follow the instruction [here](
 ```bash
 git clone https://github.com/opendilab/DI-star.git
 cd DI-star
+python -m pip install --upgrade pip
+pip3 install --upgrade pip setuptools
 pip install -e .
 ```
 
@@ -139,7 +141,7 @@ python -m distar.pysc2.bin.agent --map Simple64 --agent2 distar.pysc2.agents.ran
 Replay
 ```shell
 $ python -m pysc2.bin.play --replay <path-to-replay>
-$ python -m distar.pysc2.bin.play --replay $DI_STAR_DIR/
+$ python -m distar.pysc2.bin.play --replay $DI_STAR_DIR/xxxx
 ```
 
 

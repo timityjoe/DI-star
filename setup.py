@@ -13,6 +13,9 @@
 # limitations under the License.
 """Module setuptools script."""
 
+import distutils.command.build
+import os
+import subprocess
 from setuptools import setup
 
 description = """distar - StarCraft II Learning Environment
@@ -72,7 +75,7 @@ setup(
         'mpyq',
         'numpy==1.20',
         'portpicker>=1.2.0',
-        'protobuf<=3.20.1',
+        'protobuf==3.20.1',
         'pygame',
         'requests',
         's2clientprotocol>=4.10.1.75800.0',
